@@ -1,15 +1,20 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { UploadDialog } from "./_components/upload-dialog";
+import { getMyImages } from "~/server/queries";
+
+export const dynamic = "force-dynamic";
 
 async function Images() {
-  const mockUrls = [
-    "https://billboardphilippines.com/wp-content/uploads/2024/12/bini-digital-in-article-09.jpg",
-  ];
+  // const mockUrls = [
+  //   "https://billboardphilippines.com/wp-content/uploads/2024/12/bini-digital-in-article-09.jpg",
+  // ];
 
-  const images = mockUrls.map((url, index) => ({
-    id: index + 1,
-    url,
-  }));
+  // const images = mockUrls.map((url, index) => ({
+  //   id: index + 1,
+  //   url,
+  // }));
+
+  const images = await getMyImages();
 
   return (
     <div>
@@ -23,7 +28,7 @@ async function Images() {
             className="group relative overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
           >
             <img
-              src={image.url}
+              src={image.imageUrl}
               alt={`Image ${image.id}`}
               className="h-64 w-80 object-cover transition-opacity duration-300 group-hover:opacity-90"
             />
@@ -35,7 +40,7 @@ async function Images() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
   return (
     <main className="">
       <SignedOut>
