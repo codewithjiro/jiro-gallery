@@ -3,11 +3,11 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import TopNav from "./_components/topnav";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
 import { Toaster } from "~/components/ui/sonner";
+import { dark } from "@clerk/themes";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -25,7 +25,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      afterSignInUrl="/dashboard"
+      afterSignOutUrl="/"
+      appearance={{
+        baseTheme: dark,
+      }}
+    >
       <html lang="en" className={`${poppins.variable}`}>
         <body className="bg-black text-white">
           <NextSSRPlugin
@@ -37,7 +43,6 @@ export default function RootLayout({
              */
             routerConfig={extractRouterConfig(ourFileRouter)}
           />
-          <TopNav />
           {children}
           <Toaster />
         </body>
