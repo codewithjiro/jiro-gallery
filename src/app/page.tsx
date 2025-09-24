@@ -18,7 +18,7 @@ async function Images() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-3xl font-bold text-transparent">
-                Welcome back, {user?.firstName || "User"}!
+                Welcome, {user?.firstName || "User"}!
               </h1>
               <p className="mt-1 text-zinc-400">
                 {images.length} {images.length === 1 ? "image" : "images"}

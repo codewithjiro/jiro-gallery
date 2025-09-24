@@ -12,6 +12,5 @@ export async function getMyImages() {
     orderBy: (model, { desc }) => [desc(model.id)],
   });
 
-
   return images;
 }

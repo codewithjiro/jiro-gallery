@@ -19,7 +19,6 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
-
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -52,14 +51,13 @@ export function UploadDialog() {
   });
 
   const resetForm = () => {
-  setSelectedImageName(null);
-  setSelectedImageUrl(null);
-  form.reset(); 
-  if (inputRef.current) {
-    inputRef.current.value = "";
-  }
-};
-
+    setSelectedImageName(null);
+    setSelectedImageUrl(null);
+    form.reset();
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
 
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
