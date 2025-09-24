@@ -1,4 +1,6 @@
-import { SignedIn, SignedOut, SignIn, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import Link from "next/link";
+import { UploadButton } from "~/utils/uploadthing";
 import { UploadDialog } from "./_components/upload-dialog";
 import { getMyImages } from "~/server/queries";
 import { ImageModal } from "./_components/image-modal";
@@ -6,6 +8,18 @@ import { ImageModal } from "./_components/image-modal";
 export const dynamic = "force-dynamic"; // This page is dynamic and should not be cached
 
 async function Images() {
+  // const mockUrls = [
+  //   "https://www.jedishop.eu/_obchody/www.jedishop.cz/prilohy/675/character-vocal-series-01-hatsune-miku-pvc-soska-1.jpg.big.jpg",
+  //   "https://images.immediate.co.uk/production/volatile/sites/3/2025/01/hatsune-miku-fortnite-e23a13b.jpg?resize=1366,910",
+  //   "https://bm1mkaq6i6.ufs.sh/f/vVnKMogA5mBcE7CgZBTbQsL2P64R0Z5wX3hpB7rqIxiyukSo",
+  //   "https://bm1mkaq6i6.ufs.sh/f/vVnKMogA5mBccqOC7MK0LE236HjuyDFnkZgl98warKhezicN",
+  // ];
+
+  // const images = mockUrls.map((url, index) => ({
+  //   id: index + 1,
+  //   url,
+  // }));
+
   const images = await getMyImages();
 
   return (
@@ -37,22 +51,15 @@ async function Images() {
 
 export default async function HomePage() {
   return (
-    <main>
-      {/* If signed out → show Sign In screen */}
+    <main className="">
       <SignedOut>
-        <div className="flex h-screen flex-col items-center justify-center gap-6">
-          <p className="text-2xl">Please sign in to continue</p>
-          <SignIn afterSignInUrl="/" />
+        <div className="h-full w-full text-center text-2xl">
+          Please Sign In Above to Continue!
         </div>
       </SignedOut>
-
-      {/* If signed in → show app */}
       <SignedIn>
         <div className="h-full w-full text-center text-2xl">
-          <div className="flex items-center justify-between p-4">
-            <h1 className="text-2xl font-semibold">Welcome Back!</h1>
-            <UserButton afterSignOutUrl="/" />
-          </div>
+          Welcome Back!
           <Images />
         </div>
       </SignedIn>
