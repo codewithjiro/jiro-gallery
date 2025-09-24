@@ -46,6 +46,8 @@ export default function RootLayout({
           <TopNav />
           {children}
           <Toaster />
+          
+
         </body>
       </html>
     </ClerkProvider>

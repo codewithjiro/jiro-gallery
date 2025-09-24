@@ -51,6 +51,16 @@ export function UploadDialog() {
     },
   });
 
+  const resetForm = () => {
+  setSelectedImageName(null);
+  setSelectedImageUrl(null);
+  form.reset(); 
+  if (inputRef.current) {
+    inputRef.current.value = "";
+  }
+};
+
+
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedImageName, setSelectedImageName] = useState<string | null>(
@@ -87,11 +97,14 @@ export function UploadDialog() {
       toast.error(
         <span className="text-lg">Upload Error {error.message}</span>,
       );
+      resetForm();
     },
     onClientUploadComplete: () => {
       toast.dismiss("upload-begin");
       toast.success(<span className="text-lg">Upload Complete!</span>);
+      resetForm();
       router.refresh();
+      setOpen(false);
     },
   });
 
