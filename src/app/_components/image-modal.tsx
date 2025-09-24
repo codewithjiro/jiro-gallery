@@ -33,6 +33,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
     null,
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const { user } = useUser();
   const router = useRouter();
 
@@ -92,49 +93,83 @@ export function ImageModal({ image, children }: ImageModalProps) {
     }
   };
 
+  const handleCopyUrl = () => {
+    navigator.clipboard.writeText(image.imageUrl);
+    toast.success("URL copied to clipboard!");
+  };
+
   return (
     <div>
       <div onClick={() => setIsOpen(true)} className="cursor-pointer">
         {children}
       </div>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="min-h-[90vh] max-w-7xl min-w-[95vw] overflow-hidden border border-zinc-800/50 bg-zinc-950 p-0">
-          <div className="flex h-full flex-col lg:flex-row">
+        <DialogContent className="h-[100dvh] w-full max-w-none border-0 bg-zinc-950 p-0 sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg sm:border sm:border-zinc-800/50">
+          {/* Mobile Header - Only visible on mobile */}
+          <div className="flex items-center justify-between border-b border-zinc-800/50 bg-zinc-900/30 p-4 sm:hidden">
+            <h2 className="text-lg font-semibold text-white">Image Details</h2>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-zinc-400 hover:text-white"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex h-full flex-col sm:flex-row min-h-0">
             {/* Image Container */}
-            <div className="group relative flex flex-1 items-center justify-center bg-gradient-to-br from-zinc-950 via-black to-zinc-900">
+            <div className="group relative flex flex-1 items-center justify-center bg-gradient-to-br from-zinc-950 via-black to-zinc-900 overflow-hidden min-h-0 min-w-0">
+            
+
               {/* Image */}
-              <div className="relative max-h-full max-w-full p-8">
+              <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 min-h-0 min-w-0">
                 <img
                   src={image.imageUrl}
                   alt={image.imageName || image.fileName || `Image ${image.id}`}
-                  className="max-h-[80vh] max-w-full rounded-lg object-contain shadow-2xl"
+                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl block"
                 />
 
-                {/* Image overlay info */}
-                <div className="absolute right-4 bottom-4 left-4 rounded-lg bg-black/60 p-3 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:opacity-100">
-                  <p className="truncate text-sm font-medium text-white">
+                {/* Image overlay info - hidden on mobile when details panel is open */}
+                <div className={`absolute right-2 bottom-2 left-2 sm:right-4 sm:bottom-4 sm:left-4 rounded-lg bg-black/60 p-2 sm:p-3 backdrop-blur-sm transition-all duration-300 ${showDetails ? 'opacity-0 sm:opacity-0 sm:group-hover:opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}>
+                  <p className="truncate text-xs sm:text-sm font-medium text-white">
                     {image.imageName || image.fileName}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Details Panel */}
-            <div className="flex w-full flex-col border-l border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm lg:w-96">
-              {/* Header */}
-              <div className="border-b border-zinc-800/50 bg-zinc-900/30 p-6">
+            {/* Details Panel - Responsive behavior */}
+            <div className={`${showDetails ? 'flex' : 'hidden'} sm:flex w-full flex-col border-t sm:border-t-0 sm:border-l border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm sm:w-96 sm:flex-shrink-0 sm:min-w-0 absolute bottom-0 left-0 right-0 h-auto max-h-[50vh] sm:relative sm:h-full sm:max-h-full overflow-hidden`}>
+              {/* Header - Hidden on mobile (shown in mobile header instead) */}
+              <div className="hidden sm:block border-b border-zinc-800/50 bg-zinc-900/30 p-6">
                 <h2 className="mb-2 bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-xl font-bold text-transparent">
                   Image Details
                 </h2>
               </div>
 
               {/* Content */}
-              <div className="flex-1 space-y-6 overflow-y-auto p-6">
+              <div className="flex-1 space-y-4 sm:space-y-6 overflow-y-auto p-4 sm:p-6">
                 {/* Image Name */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-zinc-400"
+                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -151,7 +186,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
                     </span>
                   </div>
                   <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="break-words text-white">
+                    <p className="break-words text-sm sm:text-base text-white">
                       {image.imageName || image.fileName || "Untitled"}
                     </p>
                   </div>
@@ -161,7 +196,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-zinc-400"
+                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -180,11 +215,11 @@ export function ImageModal({ image, children }: ImageModalProps) {
                   <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-white"></div>
-                        <span className="text-zinc-400">Loading...</span>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-white flex-shrink-0"></div>
+                        <span className="text-zinc-400 text-sm">Loading...</span>
                       </div>
                     ) : (
-                      <p className="text-white">{uploaderInfo?.fullName}</p>
+                      <p className="text-sm sm:text-base text-white">{uploaderInfo?.fullName}</p>
                     )}
                   </div>
                 </div>
@@ -193,7 +228,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-zinc-400"
+                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -210,7 +245,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
                     </span>
                   </div>
                   <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="text-white">{formatDate(image.createdAt)}</p>
+                    <p className="text-sm sm:text-base text-white">{formatDate(image.createdAt)}</p>
                   </div>
                 </div>
 
@@ -218,7 +253,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <svg
-                      className="h-4 w-4 text-zinc-400"
+                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -235,14 +270,12 @@ export function ImageModal({ image, children }: ImageModalProps) {
                     </span>
                   </div>
                   <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="font-mono text-xs break-all text-zinc-400">
+                    <p className="font-mono text-xs break-all text-zinc-400 mb-2">
                       {image.imageUrl}
                     </p>
                     <button
-                      onClick={() =>
-                        navigator.clipboard.writeText(image.imageUrl)
-                      }
-                      className="mt-2 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+                      onClick={handleCopyUrl}
+                      className="text-xs text-zinc-500 transition-colors hover:text-zinc-300 active:text-white"
                     >
                       Click to copy
                     </button>
@@ -251,15 +284,15 @@ export function ImageModal({ image, children }: ImageModalProps) {
               </div>
 
               {/* Actions Footer */}
-              <div className="border-t border-zinc-800/50 bg-zinc-900/30 p-6">
-                <div className="flex gap-3">
+              <div className="border-t border-zinc-800/50 bg-zinc-900/30 p-4 sm:p-6">
+                <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
                     variant="destructive"
-                    className="flex-1 border border-red-500/30 bg-red-600/20 text-white hover:bg-red-600/30 hover:text-red-200"
+                    className="flex-1 border border-red-500/30 bg-red-600/20 text-white hover:bg-red-600/30 hover:text-red-200 active:bg-red-600/40"
                     onClick={handleDelete}
                   >
                     <svg
-                      className="mr-2 h-4 w-4"
+                      className="mr-2 h-4 w-4 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -275,11 +308,11 @@ export function ImageModal({ image, children }: ImageModalProps) {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-zinc-700/50 bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/50"
+                    className="flex-1 border-zinc-700/50 bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/50 active:bg-zinc-700/70"
                     onClick={() => window.open(image.imageUrl, "_blank")}
                   >
                     <svg
-                      className="mr-2 h-4 w-4"
+                      className="mr-2 h-4 w-4 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
