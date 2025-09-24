@@ -1,38 +1,33 @@
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignIn, UserButton } from "@clerk/nextjs";
 import { UploadDialog } from "./_components/upload-dialog";
 import { getMyImages } from "~/server/queries";
+import { ImageModal } from "./_components/image-modal";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // This page is dynamic and should not be cached
 
 async function Images() {
-  // const mockUrls = [
-  //   "https://billboardphilippines.com/wp-content/uploads/2024/12/bini-digital-in-article-09.jpg",
-  // ];
-
-  // const images = mockUrls.map((url, index) => ({
-  //   id: index + 1,
-  //   url,
-  // }));
-
   const images = await getMyImages();
 
   return (
     <div>
-      <div className="flex justify-center p-6">
+      <div className="flex justify-end p-4">
         <UploadDialog />
       </div>
-      <div className="flex flex-wrap justify-center gap-6 p-6">
+      <div className="flex flex-wrap justify-center gap-6 p-4">
         {images.map((image) => (
-          <div
-            key={image.id}
-            className="group relative overflow-hidden rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
-          >
-            <img
-              src={image.imageUrl}
-              alt={`Image ${image.id}`}
-              className="h-64 w-80 object-cover transition-opacity duration-300 group-hover:opacity-90"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div key={image.id} className="flex w-64 flex-col">
+            <ImageModal image={image}>
+              <div className="relative aspect-video bg-zinc-900">
+                <img
+                  src={image.imageUrl}
+                  alt={`Image ${image.id}`}
+                  className="h-full w-full object-contain object-top"
+                />
+              </div>
+            </ImageModal>
+            <div className="text-center">
+              {image.imageName || image.fileName}
+            </div>
           </div>
         ))}
       </div>
@@ -42,15 +37,22 @@ async function Images() {
 
 export default async function HomePage() {
   return (
-    <main className="">
+    <main>
+      {/* If signed out → show Sign In screen */}
       <SignedOut>
-        <div className="h-full w-full text-center text-2xl">
-          Please sign in to access the application.
+        <div className="flex h-screen flex-col items-center justify-center gap-6">
+          <p className="text-2xl">Please sign in to continue</p>
+          <SignIn afterSignInUrl="/" />
         </div>
       </SignedOut>
+
+      {/* If signed in → show app */}
       <SignedIn>
-        <div className="mt-8 h-full w-full text-center text-2xl font-semibold">
-          Welcome to the application!
+        <div className="h-full w-full text-center text-2xl">
+          <div className="flex items-center justify-between p-4">
+            <h1 className="text-2xl font-semibold">Welcome Back!</h1>
+            <UserButton afterSignOutUrl="/" />
+          </div>
           <Images />
         </div>
       </SignedIn>

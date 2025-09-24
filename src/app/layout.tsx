@@ -8,7 +8,8 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
 import { Toaster } from "~/components/ui/sonner";
 import { dark } from "@clerk/themes";
-import TopNav from "./_components/topnav";
+import { TopNav } from "./_components/topnav";
+
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -32,13 +33,13 @@ export default function RootLayout({
       }}
     >
       <html lang="en" className={`${poppins.variable}`}>
-        <body className="bg-black text-white">
+        <body className="dark">
           <NextSSRPlugin
             /**
              * The `extractRouterConfig` will extract **only** the route configs
              * from the router to prevent additional information from being
              * leaked to the client. The data passed to the client is the same
-             * as if you were to fetch `/api/uploadthing` directly.
+             * as if you were to fetch `/api /uploadthing` directly.
              */
             routerConfig={extractRouterConfig(ourFileRouter)}
           />
