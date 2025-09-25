@@ -1,19 +1,22 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
+import {
+  ClipboardCopy,
+  X,
+  Info,
+  Calendar,
+  User,
+  Link,
+  Trash2,
+  ExternalLink,
+  ChevronUp,
+  Download,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 
 interface ImageModalProps {
   image: {
@@ -34,6 +37,7 @@ export function ImageModal({ image, children }: ImageModalProps) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const { user } = useUser();
   const router = useRouter();
 
@@ -60,16 +64,11 @@ export function ImageModal({ image, children }: ImageModalProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     }).format(new Date(date));
-  };
-
-  const formatFileSize = (url: string) => {
-    // This is a placeholder - you might want to add actual file size data to your image object
-    return "Size unknown";
   };
 
   const handleDelete = async () => {
@@ -83,11 +82,8 @@ export function ImageModal({ image, children }: ImageModalProps) {
       }
 
       toast.success("Image deleted successfully");
-
-      // Optional: close modal or refresh images list
       setIsOpen(false);
       router.refresh();
-      // You might want to refetch your image list here if you're displaying it somewhere
     } catch (err) {
       toast.error("Error deleting image");
     }
@@ -98,235 +94,294 @@ export function ImageModal({ image, children }: ImageModalProps) {
     toast.success("URL copied to clipboard!");
   };
 
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = image.imageUrl;
+    link.download = image.imageName || image.fileName || `image-${image.id}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div onClick={() => setIsOpen(true)} className="cursor-pointer">
         {children}
       </div>
+
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-[100dvh] w-full max-w-none border-0 bg-zinc-950 p-0 sm:h-[90vh] sm:w-[95vw] sm:max-w-7xl sm:rounded-lg sm:border sm:border-zinc-800/50">
-          {/* Mobile Header - Only visible on mobile */}
-          <div className="flex items-center justify-between border-b border-zinc-800/50 bg-zinc-900/30 p-4 sm:hidden">
-            <h2 className="text-lg font-semibold text-white">Image Details</h2>
-            <div className="flex items-center gap-2">
+        <DialogTitle className="sr-only">
+          {image.imageName || image.fileName || `Image ${image.id}`}
+        </DialogTitle>
+
+        <DialogContent className="h-screen w-screen max-w-none border-0 bg-black/95 p-0 sm:h-[95vh] sm:w-[95vw] sm:max-w-6xl sm:rounded-xl sm:border">
+          {/* Mobile Header */}
+          <div className="flex h-14 items-center justify-between border-b border-white/10 bg-black/50 px-4 backdrop-blur-md sm:hidden">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-zinc-400 hover:text-white"
+                className="h-8 w-8 rounded-full bg-white/10 p-0 text-white hover:bg-white/20"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <Info className="h-4 w-4" />
               </Button>
+              <div className="max-w-[180px]">
+                <p className="truncate text-sm font-medium text-white">
+                  {image.imageName || image.fileName || "Untitled"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex h-full flex-col sm:flex-row min-h-0">
+          <div className="relative flex h-full min-h-0 flex-col sm:flex-row">
             {/* Image Container */}
-            <div className="group relative flex flex-1 items-center justify-center bg-gradient-to-br from-zinc-950 via-black to-zinc-900 overflow-hidden min-h-0 min-w-0">
-            
+            <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black">
+              {/* Loading State */}
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+                </div>
+              )}
 
               {/* Image */}
-              <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-8 min-h-0 min-w-0">
+              <div className="flex h-full w-full items-center justify-center p-4 sm:p-8">
                 <img
                   src={image.imageUrl}
                   alt={image.imageName || image.fileName || `Image ${image.id}`}
-                  className="max-w-full max-h-full object-contain rounded-lg shadow-2xl block"
+                  className={`max-h-full max-w-full rounded-lg object-contain shadow-2xl transition-opacity duration-300 ${
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  onLoad={() => setImageLoaded(true)}
                 />
+              </div>
 
-                {/* Image overlay info - hidden on mobile when details panel is open */}
-                <div className={`absolute right-2 bottom-2 left-2 sm:right-4 sm:bottom-4 sm:left-4 rounded-lg bg-black/60 p-2 sm:p-3 backdrop-blur-sm transition-all duration-300 ${showDetails ? 'opacity-0 sm:opacity-0 sm:group-hover:opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}>
-                  <p className="truncate text-xs sm:text-sm font-medium text-white">
-                    {image.imageName || image.fileName}
-                  </p>
+              {/* Desktop Image Info Overlay */}
+              <div className="absolute right-4 bottom-4 left-4 hidden rounded-lg bg-black/60 p-3 backdrop-blur-md transition-all duration-300 sm:block sm:opacity-0 sm:hover:opacity-100">
+                <p className="truncate text-sm font-medium text-white">
+                  {image.imageName || image.fileName}
+                </p>
+                <p className="text-xs text-white/70">
+                  {formatDate(image.createdAt)}
+                </p>
+              </div>
+            </div>
+
+            {/* Mobile Details Panel - Slide Up */}
+            <div
+              className={`absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out sm:hidden ${
+                showDetails ? "translate-y-0" : "translate-y-full"
+              }`}
+            >
+              <div className="rounded-t-3xl bg-white/10 backdrop-blur-md">
+                {/* Handle */}
+                <div className="flex justify-center pt-3 pb-2">
+                  <div className="h-1 w-12 rounded-full bg-white/30"></div>
+                </div>
+
+                {/* Content */}
+                <div className="max-h-[60vh] overflow-y-auto px-6 pb-6">
+                  <h3 className="mb-4 text-lg font-semibold text-white">
+                    Image Details
+                  </h3>
+
+                  <div className="space-y-4">
+                    {/* Name */}
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-white/70">
+                        <Info className="h-4 w-4" />
+                        <span className="text-sm font-medium">Name</span>
+                      </div>
+                      <p className="text-white">
+                        {image.imageName || image.fileName || "Untitled"}
+                      </p>
+                    </div>
+
+                    {/* Uploader */}
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-white/70">
+                        <User className="h-4 w-4" />
+                        <span className="text-sm font-medium">Uploaded by</span>
+                      </div>
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+                          <span className="text-white/70">Loading...</span>
+                        </div>
+                      ) : (
+                        <p className="text-white">{uploaderInfo?.fullName}</p>
+                      )}
+                    </div>
+
+                    {/* Date */}
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-white/70">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-sm font-medium">Created</span>
+                      </div>
+                      <p className="text-white">
+                        {formatDate(image.createdAt)}
+                      </p>
+                    </div>
+
+                    {/* URL */}
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <div className="mb-2 flex items-center gap-2 text-white/70">
+                        <Link className="h-4 w-4" />
+                        <span className="text-sm font-medium">URL</span>
+                      </div>
+                      <button
+                        onClick={handleCopyUrl}
+                        className="w-full rounded-lg bg-white/10 p-3 text-left transition-colors hover:bg-white/20"
+                      >
+                        <p className="mb-1 truncate font-mono text-xs text-white/80">
+                          {image.imageUrl}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-white/60">
+                          <ClipboardCopy className="h-3 w-3" />
+                          Tap to copy
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-6 grid grid-cols-3 gap-3">
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                      className="rounded-xl border border-red-500/30 bg-red-500/20 text-white hover:bg-red-500/30"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open(image.imageUrl, "_blank")}
+                      className="rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Open
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDownload}
+                      className="rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Details Panel - Responsive behavior */}
-            <div className={`${showDetails ? 'flex' : 'hidden'} sm:flex w-full flex-col border-t sm:border-t-0 sm:border-l border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm sm:w-96 sm:flex-shrink-0 sm:min-w-0 absolute bottom-0 left-0 right-0 h-auto max-h-[50vh] sm:relative sm:h-full sm:max-h-full overflow-hidden`}>
-              {/* Header - Hidden on mobile (shown in mobile header instead) */}
-              <div className="hidden sm:block border-b border-zinc-800/50 bg-zinc-900/30 p-6">
-                <h2 className="mb-2 bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-xl font-bold text-transparent">
-                  Image Details
-                </h2>
+            {/* Desktop Details Panel */}
+            <div className="hidden w-80 border-l border-white/10 bg-black/50 backdrop-blur-md sm:flex sm:flex-col">
+              {/* Header */}
+              <div className="border-b border-white/10 p-6">
+                <h2 className="text-xl font-bold text-white">Image Details</h2>
               </div>
 
               {/* Content */}
-              <div className="flex-1 space-y-4 sm:space-y-6 overflow-y-auto p-4 sm:p-6">
-                {/* Image Name */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium text-zinc-300">
-                      Name
-                    </span>
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {/* Name */}
+                  <div>
+                    <div className="mb-2 flex items-center gap-2 text-white/70">
+                      <Info className="h-4 w-4" />
+                      <span className="text-sm font-medium">Name</span>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <p className="break-words text-white">
+                        {image.imageName || image.fileName || "Untitled"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="break-words text-sm sm:text-base text-white">
-                      {image.imageName || image.fileName || "Untitled"}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Uploader Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium text-zinc-300">
-                      Uploaded by
-                    </span>
+                  {/* Uploader */}
+                  <div>
+                    <div className="mb-2 flex items-center gap-2 text-white/70">
+                      <User className="h-4 w-4" />
+                      <span className="text-sm font-medium">Uploaded by</span>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-4">
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>
+                          <span className="text-white/70">Loading...</span>
+                        </div>
+                      ) : (
+                        <p className="text-white">{uploaderInfo?.fullName}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-white flex-shrink-0"></div>
-                        <span className="text-zinc-400 text-sm">Loading...</span>
-                      </div>
-                    ) : (
-                      <p className="text-sm sm:text-base text-white">{uploaderInfo?.fullName}</p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Upload Date */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium text-zinc-300">
-                      Created
-                    </span>
+                  {/* Date */}
+                  <div>
+                    <div className="mb-2 flex items-center gap-2 text-white/70">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-sm font-medium">Uploaded at</span>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-4">
+                      <p className="text-white">
+                        {formatDate(image.createdAt)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="text-sm sm:text-base text-white">{formatDate(image.createdAt)}</p>
-                  </div>
-                </div>
 
-                {/* Image URL */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4 text-zinc-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium text-zinc-300">
-                      URL
-                    </span>
-                  </div>
-                  <div className="rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
-                    <p className="font-mono text-xs break-all text-zinc-400 mb-2">
-                      {image.imageUrl}
-                    </p>
+                  {/* URL */}
+                  <div>
+                    <div className="mb-2 flex items-center gap-2 text-white/70">
+                      <Link className="h-4 w-4" />
+                      <span className="text-sm font-medium">URL</span>
+                    </div>
                     <button
                       onClick={handleCopyUrl}
-                      className="text-xs text-zinc-500 transition-colors hover:text-zinc-300 active:text-white"
+                      className="w-full rounded-xl bg-white/5 p-4 text-left transition-colors hover:bg-white/10"
                     >
-                      Click to copy
+                      <p className="mb-2 font-mono text-xs break-all text-white/80">
+                        {image.imageUrl}
+                      </p>
+                      <div className="flex items-center gap-1 text-xs text-white/60">
+                        <ClipboardCopy className="h-3 w-3" />
+                        Click to copy
+                      </div>
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Actions Footer */}
-              <div className="border-t border-zinc-800/50 bg-zinc-900/30 p-4 sm:p-6">
-                <div className="flex flex-col gap-3 sm:flex-row">
+              {/* Desktop Actions Footer */}
+              <div className="border-t border-white/10 p-6">
+                <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="destructive"
-                    className="flex-1 border border-red-500/30 bg-red-600/20 text-white hover:bg-red-600/30 hover:text-red-200 active:bg-red-600/40"
                     onClick={handleDelete}
+                    className="rounded-xl border border-red-500/30 bg-red-500/20 text-white hover:bg-red-500/30"
                   >
-                    <svg
-                      className="mr-2 h-4 w-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-zinc-700/50 bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/50 active:bg-zinc-700/70"
                     onClick={() => window.open(image.imageUrl, "_blank")}
+                    className="rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20"
                   >
-                    <svg
-                      className="mr-2 h-4 w-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
+                    <ExternalLink className="mr-2 h-4 w-4" />
                     Open
                   </Button>
                 </div>
+
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  className="mt-3 w-full rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </Button>
               </div>
             </div>
           </div>

@@ -104,13 +104,6 @@ async function Images() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Image Info */}
-                    <div className="p-4">
-                      <h3 className="truncate text-sm font-medium text-zinc-200">
-                        {image.imageName || image.fileName}
-                      </h3>
-                    </div>
                   </div>
                 </ImageModal>
               </div>
